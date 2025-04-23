@@ -26,9 +26,9 @@ if "app_mode" not in st.session_state:
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
     st.session_state.access_token = None
-    st.session_state.username = os.getenv("USERNAME", "qatrtr")
-    st.session_state.password = os.getenv("PASSWORD", "j9Wy$@KNA@vvuBfdff5")
-    st.session_state.base_url = os.getenv("BASE_URL", "http://localhost:8000/43/343")
+    st.session_state.username = os.getenv("USERNAME", "username")
+    st.session_state.password = os.getenv("PASSWORD", "password")
+    st.session_state.base_url = os.getenv("BASE_URL", "https://example.com")
     st.session_state.companies = []  # To store company list
 
 # Create sidebar for customization
@@ -130,6 +130,11 @@ app_mode = st.sidebar.radio(
     ["Crawl Company Website", "Ask Question"],
     index=0 if st.session_state.app_mode == "Crawl Company Website" else 1,
 )
+
+# Check if mode has changed to Ask Question from Crawl Company Website
+if app_mode != st.session_state.app_mode and app_mode == "Ask Question" and st.session_state.authenticated:
+    # Refresh company list when switching to Ask Question mode
+    fetch_companies()
 
 # Update session state with selected mode
 st.session_state.app_mode = app_mode
