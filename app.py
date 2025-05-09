@@ -29,9 +29,9 @@ if "authenticated" not in st.session_state:
     st.session_state.username = os.getenv("USERNAME", "username")
     st.session_state.password = os.getenv("PASSWORD", "password")
     st.session_state.base_url = os.getenv("BASE_URL", "https://example.com")
-    st.session_state.companies = []  # To store company list
+    st.session_state.companies = []  # To store company list    
 
-# Create sidebar for customization
+# Create sidebar for customizationca
 st.sidebar.header("Configuration")
 
 
@@ -165,7 +165,7 @@ with st.sidebar.expander("LLM Configuration", expanded=False):
     model_choice = st.selectbox(
         "LLM Model",
         options=list(llm_models.keys()),
-        index=4,  # Default to Gemini 1.5 Flash
+        index=8,  # Default to Gemini 1.5 Flash
         key="llm_model_select",
     )
     selected_model = llm_models[model_choice]
@@ -207,6 +207,23 @@ if app_mode == "Crawl Company Website":
             "Company Domains (one per line, e.g., example.com)"
         )
 
+        # Add crawl type selection
+        crawl_type = st.radio(
+            "Crawl Type",
+            ["Lite Crawl", "Custom Prompt"],
+            index=0,
+            key="crawl_type"
+        )
+
+        # Show custom prompt text box if Custom Prompt is selected
+        custom_prompt = None
+        if crawl_type == "Custom Prompt":
+            custom_prompt = st.text_area(
+                "Custom Crawling Prompt",
+                placeholder="Enter your custom crawling prompt here...",
+                help="Specify a custom prompt to guide the crawling process"
+            )
+
         # Submit button
         submit_button = st.form_submit_button("Start Crawling")
 
@@ -215,6 +232,8 @@ if app_mode == "Crawl Company Website":
                 st.error("Please authenticate first!")
             elif not company_domains:
                 st.error("Please enter at least one company domain")
+            elif crawl_type == "Custom Prompt" and not custom_prompt:
+                st.error("Please enter a custom prompt")
             else:
                 # Parse domains (one per line)
                 domains_list = [
@@ -231,11 +250,22 @@ if app_mode == "Crawl Company Website":
                             "Authorization": f"Bearer {st.session_state.access_token}",
                             "Content-Type": "application/json",
                         }
-                        payload = json.dumps({"company_domains": domains_list})
+                        
+                        # Prepare payload based on crawl type
+                        payload = {
+                            "company_domains": domains_list,
+                            "lite_crawl": crawl_type == "Lite Crawl"
+                        }
+                        
+                        # Add custom prompt if provided
+                        if crawl_type == "Custom Prompt" and custom_prompt:
+                            payload["prompt"] = custom_prompt
+                            
+                        payload_json = json.dumps(payload)
 
                         with st.spinner("Submitting crawl request..."):
                             response = requests.post(
-                                crawl_url, headers=headers, data=payload, timeout=30
+                                crawl_url, headers=headers, data=payload_json, timeout=30
                             )
 
                             if response.status_code == 200:
