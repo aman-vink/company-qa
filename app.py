@@ -29,7 +29,7 @@ if "authenticated" not in st.session_state:
     st.session_state.username = os.getenv("USERNAME", "username")
     st.session_state.password = os.getenv("PASSWORD", "password")
     st.session_state.base_url = os.getenv("BASE_URL", "https://example.com")
-    st.session_state.companies = []  # To store company list    
+    st.session_state.companies = []  # To store company list
 
 # Create sidebar for customizationca
 st.sidebar.header("Configuration")
@@ -132,7 +132,11 @@ app_mode = st.sidebar.radio(
 )
 
 # Check if mode has changed to Ask Question from Crawl Company Website
-if app_mode != st.session_state.app_mode and app_mode == "Ask Question" and st.session_state.authenticated:
+if (
+    app_mode != st.session_state.app_mode
+    and app_mode == "Ask Question"
+    and st.session_state.authenticated
+):
     # Refresh company list when switching to Ask Question mode
     fetch_companies()
 
@@ -196,6 +200,16 @@ with st.sidebar.expander("Vector Store Configuration", expanded=False):
         key="rerank_top_n",
     )
 
+with st.sidebar.expander("Recursion Limit", expanded=False):
+    recursion_limit = st.number_input(
+        "Recursion Limit",
+        min_value=25,
+        max_value=100,
+        value=25,
+        help="Maximum number of recursive calls for complex queries",
+        key="recursion_limit",
+    )
+
 # Main app content based on selected mode
 if app_mode == "Crawl Company Website":
     st.title("Company Website Crawler")
@@ -209,10 +223,7 @@ if app_mode == "Crawl Company Website":
 
         # Add crawl type selection
         crawl_type = st.radio(
-            "Crawl Type",
-            ["Lite Crawl", "Custom Prompt"],
-            index=0,
-            key="crawl_type"
+            "Crawl Type", ["Lite Crawl", "Custom Prompt"], index=0, key="crawl_type"
         )
 
         # Show custom prompt text box if Custom Prompt is selected
@@ -221,7 +232,7 @@ if app_mode == "Crawl Company Website":
             custom_prompt = st.text_area(
                 "Custom Crawling Prompt",
                 placeholder="Enter your custom crawling prompt here...",
-                help="Specify a custom prompt to guide the crawling process"
+                help="Specify a custom prompt to guide the crawling process",
             )
 
         # Submit button
@@ -250,22 +261,25 @@ if app_mode == "Crawl Company Website":
                             "Authorization": f"Bearer {st.session_state.access_token}",
                             "Content-Type": "application/json",
                         }
-                        
+
                         # Prepare payload based on crawl type
                         payload = {
                             "company_domains": domains_list,
-                            "lite_crawl": crawl_type == "Lite Crawl"
+                            "lite_crawl": crawl_type == "Lite Crawl",
                         }
-                        
+
                         # Add custom prompt if provided
                         if crawl_type == "Custom Prompt" and custom_prompt:
                             payload["prompt"] = custom_prompt
-                            
+
                         payload_json = json.dumps(payload)
 
                         with st.spinner("Submitting crawl request..."):
                             response = requests.post(
-                                crawl_url, headers=headers, data=payload_json, timeout=30
+                                crawl_url,
+                                headers=headers,
+                                data=payload_json,
+                                timeout=30,
                             )
 
                             if response.status_code == 200:
@@ -388,6 +402,7 @@ elif app_mode == "Ask Question":  # Ask Question mode
                                             rerank_top_n if use_reranker else None
                                         ),
                                     },
+                                    "recursion_limit": recursion_limit,
                                 }
 
                                 # Call the company_qa endpoint
