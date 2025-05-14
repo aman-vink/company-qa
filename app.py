@@ -419,7 +419,7 @@ elif app_mode == "Ask Question":  # Ask Question mode
                                 )
 
                                 response = requests.post(
-                                    qa_url, headers=headers, data=payload, timeout=120
+                                    qa_url, headers=headers, data=payload, timeout=500
                                 )
 
                                 if response.status_code == 200:
