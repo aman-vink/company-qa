@@ -186,7 +186,7 @@ with st.sidebar.expander("LLM Configuration", expanded=False):
 # Vector Store Configuration
 with st.sidebar.expander("Vector Store Configuration", expanded=False):
     k_value = st.number_input(
-        "Number of Chunks (k)", min_value=1, max_value=100, value=30, key="k_value"
+        "Number of Chunks (k)", min_value=1, max_value=200, value=30, key="k_value"
     )
 
     use_reranker = st.checkbox("Use Reranker", value=True, key="use_reranker")
@@ -194,7 +194,7 @@ with st.sidebar.expander("Vector Store Configuration", expanded=False):
     rerank_top_n = st.number_input(
         "Rerank Top N",
         min_value=1,
-        max_value=50,
+        max_value=100,
         value=10,
         disabled=not use_reranker,
         key="rerank_top_n",
