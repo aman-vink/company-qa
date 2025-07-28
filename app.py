@@ -31,7 +31,7 @@ if "authenticated" not in st.session_state:
     st.session_state.base_url = os.getenv("BASE_URL", "https://example.com")
     st.session_state.companies = []  # To store company list
 
-# Create sidebar for customizationca
+# Create sidebar for customization
 st.sidebar.header("Configuration")
 
 
